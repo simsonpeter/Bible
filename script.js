@@ -10,7 +10,7 @@ const prevButton = document.getElementById('prev-btn');
 const nextButton = document.getElementById('next-btn');
 
 // Load book names
-fetch('book.json')
+fetch('books.json')
     .then(response => response.json())
     .then(data => {
         data.forEach((book, index) => {
@@ -37,7 +37,7 @@ bookSelect.addEventListener('change', (event) => {
         .then(response => response.json())
         .then(data => {
             chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>';
-            data.forEach((chapter, index) => {
+            data.chapters.forEach((chapter, index) => {
                 const option = document.createElement('option');
                 option.value = index;
                 option.textContent = `அதிகாரம் ${chapter.chapter}`;
@@ -59,7 +59,7 @@ chapterSelect.addEventListener('change', (event) => {
     fetch(`books/${currentBook + 1}.json`)
         .then(response => response.json())
         .then(data => {
-            verses = data[chapterIndex].verses;
+            verses = data.chapters[chapterIndex].verses;
             updateVerse();
         })
         .catch(error => console.error('Error loading verses:', error));

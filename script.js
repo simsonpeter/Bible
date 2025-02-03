@@ -28,7 +28,6 @@ async function loadBibleData() {
         allBooksData = await Promise.all(books.map(async (book, index) => {
             try {
                 const response = await fetch(`books/${book.book.file}`);
-                if (!response.ok) throw new Error(`Failed to load ${book.book.file}`);
                 const data = await response.json();
                 return {
                     ...book,
@@ -64,8 +63,6 @@ bookSelect.addEventListener('change', async (e) => {
     if (currentBook === "") return;
     
     const selectedBook = allBooksData[currentBook];
-    if (!selectedBook) return;
-    
     populateChapterSelect(selectedBook.chapters);
     currentChapter = 0;
     loadChapter(currentChapter);
@@ -98,8 +95,11 @@ function loadChapter(chapterIndex) {
             </div>
         `).join('');
         
+        // Update dropdown selections
+        bookSelect.value = currentBook;
         chapterSelect.value = chapterIndex;
         updateNavigation();
+        searchInput.value = '';
     } catch (error) {
         console.error('Chapter load error:', error);
     }
@@ -182,27 +182,27 @@ function handleSearchResultClick(event) {
     const chapterIndex = parseInt(result.dataset.chapterIndex);
     const verseNumber = parseInt(result.dataset.verseNumber);
 
-    loadBookAndChapter(bookIndex, chapterIndex).then(() => {
+    currentBook = bookIndex;
+    const selectedBook = allBooksData[currentBook];
+    
+    // Update book selection and UI
+    bookSelect.value = currentBook;
+    populateChapterSelect(selectedBook.chapters);
+    
+    // Update chapter selection and load
+    currentChapter = chapterIndex;
+    chapterSelect.value = chapterIndex;
+    loadChapter(chapterIndex);
+    
+    // Highlight target verse
+    setTimeout(() => {
         const verseElement = document.querySelector(`.verse-item[data-verse="${verseNumber}"]`);
         if (verseElement) {
             verseElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             verseElement.classList.add('highlight-verse');
             setTimeout(() => verseElement.classList.remove('highlight-verse'), 2000);
         }
-    });
-}
-
-async function loadBookAndChapter(bookIndex, chapterIndex) {
-    return new Promise((resolve) => {
-        bookSelect.value = bookIndex;
-        bookSelect.dispatchEvent(new Event('change'));
-        
-        setTimeout(() => {
-            chapterSelect.value = chapterIndex;
-            chapterSelect.dispatchEvent(new Event('change'));
-            resolve();
-        }, 100);
-    });
+    }, 100);
 }
 
 // Event Listeners

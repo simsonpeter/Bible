@@ -19,7 +19,7 @@ themeToggle.addEventListener('click', () => {
 
 document.body.dataset.theme = localStorage.getItem('theme') || 'light';
 
-// Data Loading
+// Load Bible Data
 async function loadBibleData() {
     try {
         const booksResponse = await fetch('books.json');
@@ -40,12 +40,10 @@ async function loadBibleData() {
             }
         }));
         
-        // Filter out null values from failed loads
         allBooksData = allBooksData.filter(book => book !== null);
-        
         populateBookSelect(books);
     } catch (error) {
-        console.error('Failed to initialize app:', error);
+        console.error('Failed to load Bible data:', error);
         verseDisplay.innerHTML = '<div class="error">பைபிள் தரவுத்தளத்தை ஏற்ற முடியவில்லை</div>';
     }
 }
@@ -61,7 +59,7 @@ function populateBookSelect(books) {
 }
 
 // Book Selection
-bookSelect.addEventListener('change', (e) => {
+bookSelect.addEventListener('change', async (e) => {
     currentBook = e.target.value;
     if (currentBook === "") return;
     
@@ -95,7 +93,7 @@ function loadChapter(chapterIndex) {
         const chapter = chapters[chapterIndex];
         
         verseDisplay.innerHTML = chapter.verses.map(verse => `
-            <div class="verse-item">
+            <div class="verse-item" data-verse="${verse.verse}">
                 <strong>${verse.verse}.</strong> ${verse.text}
             </div>
         `).join('');
@@ -113,17 +111,7 @@ function updateNavigation() {
     nextChapterBtn.disabled = currentChapter === chapters.length - 1;
 }
 
-// Search Implementation
-function highlightText(text, searchTerm) {
-    if (!searchTerm) return text;
-    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
-}
-
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
+// Search Functionality
 function performSearch(searchTerm) {
     try {
         if (searchTerm.length < 2) {
@@ -135,34 +123,86 @@ function performSearch(searchTerm) {
         const normalizedSearch = searchTerm.toLowerCase();
         const results = [];
         
-        allBooksData.forEach(book => {
-            book.chapters.forEach(chapter => {
+        allBooksData.forEach((book, bookIndex) => {
+            book.chapters.forEach((chapter, chapterIndex) => {
                 chapter.verses.forEach(verse => {
                     if (verse.text.toLowerCase().includes(normalizedSearch)) {
                         results.push({
-                            book: book.book.tamil,
-                            chapter: chapter.chapter,
-                            verse: verse.verse,
-                            text: verse.text
+                            bookIndex: bookIndex,
+                            bookName: book.book.tamil,
+                            chapterIndex: chapterIndex,
+                            chapterNumber: chapter.chapter,
+                            verse: verse
                         });
                     }
                 });
             });
         });
 
-        verseDisplay.innerHTML = results.length > 0 
-            ? results.map(result => `
-                <div class="verse-item">
-                    <div class="verse-context">
-                        ${result.book} ${result.chapter}:${result.verse}
-                    </div>
-                    ${highlightText(result.text, searchTerm)}
-                </div>
-              `).join('')
-            : '<div class="no-results">எந்த வசனங்களும் கிடைக்கவில்லை</div>';
+        displaySearchResults(results, searchTerm);
     } catch (error) {
         console.error('Search error:', error);
     }
+}
+
+function displaySearchResults(results, searchTerm) {
+    verseDisplay.innerHTML = results.length > 0 
+        ? results.map(result => `
+            <div class="search-result" 
+                 data-book-index="${result.bookIndex}"
+                 data-chapter-index="${result.chapterIndex}"
+                 data-verse-number="${result.verse.verse}">
+                <div class="verse-context">
+                    ${result.bookName} ${result.chapterNumber}:${result.verse.verse}
+                </div>
+                ${highlightText(result.verse.text, searchTerm)}
+            </div>
+          `).join('')
+        : '<div class="no-results">எந்த வசனங்களும் கிடைக்கவில்லை</div>';
+
+    document.querySelectorAll('.search-result').forEach(result => {
+        result.addEventListener('click', handleSearchResultClick);
+    });
+}
+
+function highlightText(text, searchTerm) {
+    if (!searchTerm) return text;
+    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+    return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Search Result Navigation
+function handleSearchResultClick(event) {
+    const result = event.currentTarget;
+    const bookIndex = parseInt(result.dataset.bookIndex);
+    const chapterIndex = parseInt(result.dataset.chapterIndex);
+    const verseNumber = parseInt(result.dataset.verseNumber);
+
+    loadBookAndChapter(bookIndex, chapterIndex).then(() => {
+        const verseElement = document.querySelector(`.verse-item[data-verse="${verseNumber}"]`);
+        if (verseElement) {
+            verseElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            verseElement.classList.add('highlight-verse');
+            setTimeout(() => verseElement.classList.remove('highlight-verse'), 2000);
+        }
+    });
+}
+
+async function loadBookAndChapter(bookIndex, chapterIndex) {
+    return new Promise((resolve) => {
+        bookSelect.value = bookIndex;
+        bookSelect.dispatchEvent(new Event('change'));
+        
+        setTimeout(() => {
+            chapterSelect.value = chapterIndex;
+            chapterSelect.dispatchEvent(new Event('change'));
+            resolve();
+        }, 100);
+    });
 }
 
 // Event Listeners

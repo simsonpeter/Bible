@@ -1,9 +1,12 @@
 let currentBook = null;
 let currentChapter = null;
+let chapters = [];
 
 const bookSelect = document.getElementById('book-select');
 const chapterSelect = document.getElementById('chapter-select');
 const verseDisplay = document.getElementById('verse-display');
+const prevChapterBtn = document.getElementById('prev-chapter-btn');
+const nextChapterBtn = document.getElementById('next-chapter-btn');
 
 // Load book names
 fetch('books.json')
@@ -25,6 +28,7 @@ bookSelect.addEventListener('change', (event) => {
 
     currentBook = bookIndex;
     currentChapter = null;
+    chapters = [];
     verseDisplay.innerHTML = ""; // Clear verse display
 
     // Load the selected book's file name from books.json
@@ -39,14 +43,17 @@ bookSelect.addEventListener('change', (event) => {
                 .then(response => response.json())
                 .then(data => {
                     console.log("Loaded book data:", data); // Debugging: Log the loaded book data
+                    chapters = data.chapters; // Store all chapters
                     chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>';
-                    if (data.chapters && data.chapters.length > 0) {
-                        data.chapters.forEach((chapter, index) => {
+                    if (chapters.length > 0) {
+                        chapters.forEach((chapter, index) => {
                             const option = document.createElement('option');
                             option.value = index;
                             option.textContent = `அதிகாரம் ${chapter.chapter}`;
                             chapterSelect.appendChild(option);
                         });
+                        currentChapter = 0; // Set the first chapter as default
+                        loadChapter(currentChapter); // Load the first chapter
                     } else {
                         console.error("No chapters found in the book data.");
                     }
@@ -62,34 +69,42 @@ chapterSelect.addEventListener('change', (event) => {
     if (chapterIndex === "") return;
 
     currentChapter = chapterIndex;
-
-    // Load the selected book's file name from books.json
-    fetch('books.json')
-        .then(response => response.json())
-        .then(booksData => {
-            const selectedBook = booksData[currentBook];
-            const bookFileName = selectedBook.book.file; // Get the file name (e.g., Genesis.json)
-
-            // Load verses for the selected chapter
-            fetch(`books/${bookFileName}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Loaded chapter data:", data.chapters[chapterIndex]); // Debugging: Log the loaded chapter data
-                    const verses = data.chapters[chapterIndex].verses;
-                    displayVerses(verses); // Display all verses
-                })
-                .catch(error => console.error('Error loading verses:', error));
-        })
-        .catch(error => console.error('Error loading books.json:', error));
+    loadChapter(currentChapter); // Load the selected chapter
 });
 
-// Function to display all verses
-function displayVerses(verses) {
+// Function to load a chapter
+function loadChapter(chapterIndex) {
+    if (chapterIndex < 0 || chapterIndex >= chapters.length) return;
+
+    const chapter = chapters[chapterIndex];
     verseDisplay.innerHTML = ""; // Clear previous verses
-    verses.forEach(verse => {
+    chapter.verses.forEach(verse => {
         const verseItem = document.createElement('div');
         verseItem.className = 'verse-item';
         verseItem.innerHTML = `<strong>${verse.verse}.</strong> ${verse.text}`;
         verseDisplay.appendChild(verseItem);
     });
+
+    // Update chapter dropdown
+    chapterSelect.value = chapterIndex;
+
+    // Enable/disable navigation buttons
+    prevChapterBtn.disabled = chapterIndex === 0;
+    nextChapterBtn.disabled = chapterIndex === chapters.length - 1;
 }
+
+// Handle "Previous Chapter" button click
+prevChapterBtn.addEventListener('click', () => {
+    if (currentChapter > 0) {
+        currentChapter--;
+        loadChapter(currentChapter);
+    }
+});
+
+// Handle "Next Chapter" button click
+nextChapterBtn.addEventListener('click', () => {
+    if (currentChapter < chapters.length - 1) {
+        currentChapter++;
+        loadChapter(currentChapter);
+    }
+});

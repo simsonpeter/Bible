@@ -1,43 +1,36 @@
+// Theme Toggle
 const themeToggle = document.getElementById('theme-toggle');
-const bookSelect = document.getElementById('book-select');
-const chapterSelect = document.getElementById('chapter-select');
-const verseDisplay = document.getElementById('verse-display');
-const searchInput = document.getElementById('search-input');
-const prevChapterBtn = document.getElementById('prev-chapter-btn');
-const nextChapterBtn = document.getElementById('next-chapter-btn');
-
-let currentBook = null;
-let currentChapter = null;
-let allBooksData = [];
-
-// Theme management
 themeToggle.addEventListener('click', () => {
-    document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.body.dataset.theme = 
+        document.body.dataset.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', document.body.dataset.theme);
 });
 
 // Initialize theme
-document.body.dataset.theme = localStorage.getItem('theme') || 'light';
+const savedTheme = localStorage.getItem('theme') || 'light';
+document.body.dataset.theme = savedTheme;
 
-// Load initial data
-async function initializeApp() {
-    try {
-        const booksResponse = await fetch('books.json');
-        const books = await booksResponse.json();
-        
-        allBooksData = await Promise.all(books.map(async book => {
-            const response = await fetch(`books/${book.book.file}`);
-            return await response.json();
-        }));
-        
-        populateBookSelect(books);
-    } catch (error) {
-        console.error('Failed to load Bible data:', error);
-        verseDisplay.innerHTML = '<div class="error">Failed to load Bible database</div>';
-    }
-}
+// App State
+let currentBook = null;
+let currentChapter = null;
+let chapters = [];
+let currentVerses = [];
 
-function populateBookSelect(books) {
+// DOM Elements
+const bookSelect = document.getElementById('book-select');
+const chapterSelect = document.getElementById('chapter-select');
+const verseDisplay = document.getElementById('verse-display');
+const prevChapterBtn = document.getElementById('prev-chapter-btn');
+const nextChapterBtn = document.getElementById('next-chapter-btn');
+const searchInput = document.getElementById('search-input');
+
+// Load Books
+fetch('books.json')
+    .then(response => response.json())
+    .then(data => populateBooks(data))
+    .catch(error => console.error('Error loading books:', error));
+
+function populateBooks(books) {
     books.forEach((book, index) => {
         const option = document.createElement('option');
         option.value = index;
@@ -46,17 +39,25 @@ function populateBookSelect(books) {
     });
 }
 
+// Book Selection
 bookSelect.addEventListener('change', async (e) => {
     currentBook = e.target.value;
     if (currentBook === "") return;
+
+    const booksData = await fetch('books.json').then(res => res.json());
+    const selectedBook = booksData[currentBook];
     
-    const bookData = allBooksData[currentBook];
-    populateChapterSelect(bookData.chapters);
+    const bookData = await fetch(`books/${selectedBook.book.file}`)
+        .then(res => res.json())
+        .catch(error => console.error('Error loading book:', error));
+
+    chapters = bookData.chapters;
+    populateChapters();
     currentChapter = 0;
-    loadChapter(bookData.chapters[0]);
+    loadChapter(currentChapter);
 });
 
-function populateChapterSelect(chapters) {
+function populateChapters() {
     chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>';
     chapters.forEach((chapter, index) => {
         const option = document.createElement('option');
@@ -66,72 +67,85 @@ function populateChapterSelect(chapters) {
     });
 }
 
-function loadChapter(chapter) {
-    verseDisplay.innerHTML = chapter.verses.map(verse => `
-        <div class="verse-item">
-            <strong>${verse.verse}.</strong> ${verse.text}
-        </div>
-    `).join('');
-}
-
+// Chapter Selection
 chapterSelect.addEventListener('change', (e) => {
-    const chapterIndex = e.target.value;
-    if (chapterIndex === "") return;
-    currentChapter = chapterIndex;
-    loadChapter(allBooksData[currentBook].chapters[chapterIndex]);
+    currentChapter = parseInt(e.target.value);
+    if (isNaN(currentChapter)) return;
+    loadChapter(currentChapter);
 });
 
-// Navigation buttons
+// Chapter Navigation
 prevChapterBtn.addEventListener('click', () => {
     if (currentChapter > 0) {
         currentChapter--;
-        chapterSelect.value = currentChapter;
-        loadChapter(allBooksData[currentBook].chapters[currentChapter]);
+        loadChapter(currentChapter);
     }
 });
 
 nextChapterBtn.addEventListener('click', () => {
-    const maxChapter = allBooksData[currentBook].chapters.length - 1;
-    if (currentChapter < maxChapter) {
+    if (currentChapter < chapters.length - 1) {
         currentChapter++;
-        chapterSelect.value = currentChapter;
-        loadChapter(allBooksData[currentBook].chapters[currentChapter]);
+        loadChapter(currentChapter);
     }
 });
 
-// Search functionality
-searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase().trim();
-    if (searchTerm.length < 2) return;
-    
-    const results = [];
-    allBooksData.forEach((book, bookIndex) => {
-        book.chapters.forEach(chapter => {
-            chapter.verses.forEach(verse => {
-                if (verse.text.toLowerCase().includes(searchTerm)) {
-                    results.push({
-                        book: bookIndex,
-                        chapter: chapter.chapter,
-                        verse: verse.verse,
-                        text: verse.text
-                    });
-                }
-            });
-        });
-    });
-    
-    verseDisplay.innerHTML = results.map(result => `
-        <div class="verse-item">
-            <div class="verse-context">
-                ${bookSelect.options[result.book].text} ${result.chapter}:${result.verse}
-            </div>
-            ${result.text.replace(
-                new RegExp(searchTerm, 'gi'), 
-                match => `<span class="highlight">${match}</span>`
-            )}
-        </div>
-    `).join('');
-});
+// Load Chapter
+function loadChapter(chapterIndex) {
+    if (!chapters[chapterIndex]) return;
 
-// Initialize the app
-initializeApp();
+    currentChapter = chapterIndex;
+    const chapter = chapters[chapterIndex];
+    currentVerses = chapter.verses;
+    
+    verseDisplay.innerHTML = currentVerses
+        .map(verse => `
+            <div class="verse-item">
+                <strong>${verse.verse}.</strong> ${verse.text}
+            </div>
+        `).join('');
+
+    chapterSelect.value = chapterIndex;
+    updateNavigation();
+    scrollToTop();
+    clearSearch();
+}
+
+function updateNavigation() {
+    prevChapterBtn.disabled = currentChapter === 0;
+    nextChapterBtn.disabled = currentChapter === chapters.length - 1;
+}
+
+function scrollToTop() {
+    verseDisplay.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearSearch() {
+    searchInput.value = '';
+}
+
+// Search Functionality
+function highlightText(text, searchTerm) {
+    if (!searchTerm) return text;
+    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+    return text.replace(regex, '<span class="highlight">$1</span>');
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function filterVerses(searchTerm) {
+    const normalizedSearch = searchTerm.toLowerCase();
+    verseDisplay.innerHTML = currentVerses
+        .filter(verse => verse.text.toLowerCase().includes(normalizedSearch))
+        .map(verse => `
+            <div class="verse-item">
+                <strong>${verse.verse}.</strong> 
+                ${highlightText(verse.text, searchTerm)}
+            </div>
+        `).join('');
+}
+
+searchInput.addEventListener('input', (e) => {
+    filterVerses(e.target.value.trim());
+});

@@ -91,6 +91,9 @@ function loadChapter(chapterIndex) {
     // Enable/disable navigation buttons
     prevChapterBtn.disabled = chapterIndex === 0;
     nextChapterBtn.disabled = chapterIndex === chapters.length - 1;
+
+    // Scroll to the top of the verse display
+    verseDisplay.scrollTo({ top: 0, behavior: 'smooth' }); // Smooth scroll to top
 }
 
 // Handle "Previous Chapter" button click

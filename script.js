@@ -67,7 +67,8 @@ chapterSelect.addEventListener('change', (event) => {
 
 // Update verse display
 function updateVerse() {
-    verseTextElement.textContent = verses[currentVerseIndex];
+    const verse = verses[currentVerseIndex];
+    verseTextElement.textContent = `${verse.verse}. ${verse.text}`;
 }
 
 // Navigation buttons

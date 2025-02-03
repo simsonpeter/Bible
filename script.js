@@ -1,24 +1,76 @@
+let currentBook = null;
+let currentChapter = null;
 let currentVerseIndex = 0;
-let bibleData = [];
+let verses = [];
 
+const bookSelect = document.getElementById('book-select');
+const chapterSelect = document.getElementById('chapter-select');
 const verseTextElement = document.getElementById('verse-text');
 const prevButton = document.getElementById('prev-btn');
 const nextButton = document.getElementById('next-btn');
 
-// Load the Tamil Bible data
-fetch('tamil_bible.json')
+// Load book names
+fetch('book.json')
     .then(response => response.json())
     .then(data => {
-        bibleData = data;
-        updateVerse();
+        data.forEach((book, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = book;
+            bookSelect.appendChild(option);
+        });
     })
-    .catch(error => console.error('Error loading JSON:', error));
+    .catch(error => console.error('Error loading book names:', error));
 
+// Handle book selection
+bookSelect.addEventListener('change', (event) => {
+    const bookIndex = event.target.value;
+    if (bookIndex === "") return;
+
+    currentBook = bookIndex;
+    currentChapter = null;
+    currentVerseIndex = 0;
+    verses = [];
+
+    // Load chapters for the selected book
+    fetch(`books/${bookIndex + 1}.json`)
+        .then(response => response.json())
+        .then(data => {
+            chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>';
+            data.forEach((chapter, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `அதிகாரம் ${chapter.chapter}`;
+                chapterSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading chapters:', error));
+});
+
+// Handle chapter selection
+chapterSelect.addEventListener('change', (event) => {
+    const chapterIndex = event.target.value;
+    if (chapterIndex === "") return;
+
+    currentChapter = chapterIndex;
+    currentVerseIndex = 0;
+
+    // Load verses for the selected chapter
+    fetch(`books/${currentBook + 1}.json`)
+        .then(response => response.json())
+        .then(data => {
+            verses = data[chapterIndex].verses;
+            updateVerse();
+        })
+        .catch(error => console.error('Error loading verses:', error));
+});
+
+// Update verse display
 function updateVerse() {
-    const verse = bibleData[currentVerseIndex];
-    verseTextElement.textContent = verse.text;
+    verseTextElement.textContent = verses[currentVerseIndex];
 }
 
+// Navigation buttons
 prevButton.addEventListener('click', () => {
     if (currentVerseIndex > 0) {
         currentVerseIndex--;
@@ -27,7 +79,7 @@ prevButton.addEventListener('click', () => {
 });
 
 nextButton.addEventListener('click', () => {
-    if (currentVerseIndex < bibleData.length - 1) {
+    if (currentVerseIndex < verses.length - 1) {
         currentVerseIndex++;
         updateVerse();
     }

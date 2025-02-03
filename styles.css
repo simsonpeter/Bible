@@ -1,5 +1,4 @@
 :root {
-    /* Light Theme */
     --bg-color: #ffffff;
     --text-color: #333333;
     --header-bg: #007BFF;
@@ -15,7 +14,6 @@
 }
 
 [data-theme="dark"] {
-    /* Dark Theme */
     --bg-color: #1a1a1a;
     --text-color: #ffffff;
     --header-bg: #2c3e50;
@@ -29,14 +27,11 @@
     --error-color: #ff4444;
 }
 
-/* Base Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    transition: background-color 0.3s ease, 
-                color 0.3s ease, 
-                border-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 html, body {
@@ -62,7 +57,6 @@ body {
     min-height: 100vh;
 }
 
-/* Header Styles */
 header {
     background-color: var(--header-bg);
     color: var(--header-text);
@@ -82,13 +76,6 @@ header {
     padding: 0.5rem;
 }
 
-/* Main Content */
-main {
-    flex: 1;
-    padding: 1rem;
-    overflow-y: auto;
-}
-
 .controls {
     display: grid;
     gap: 1rem;
@@ -106,9 +93,10 @@ select, #search-input {
     font-size: 1rem;
 }
 
-/* Verse Display */
 #verse-display {
-    padding: 1rem 0;
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
 }
 
 .verse-item {
@@ -117,6 +105,12 @@ select, #search-input {
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.verse-item:hover {
+    transform: translateX(5px);
 }
 
 .verse-item strong {
@@ -125,7 +119,20 @@ select, #search-input {
     margin-right: 0.5rem;
 }
 
-/* Search Highlights */
+.search-result {
+    background-color: var(--verse-bg);
+    border: 1px solid var(--verse-border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.search-result:hover {
+    transform: translateX(5px);
+}
+
 .highlight {
     background-color: var(--highlight-bg);
     color: var(--highlight-text);
@@ -141,7 +148,6 @@ select, #search-input {
     font-weight: bold;
 }
 
-/* Sticky Footer */
 footer {
     background-color: var(--header-bg);
     padding: 1rem;
@@ -169,7 +175,6 @@ footer button:disabled {
     cursor: not-allowed;
 }
 
-/* Error Handling */
 .error, .no-results {
     color: var(--error-color);
     padding: 1rem;
@@ -179,7 +184,17 @@ footer button:disabled {
     margin: 1rem;
 }
 
-/* Responsive Design */
+.highlight-verse {
+    animation: verse-highlight 2s ease;
+    border-left: 4px solid var(--verse-number-color);
+    padding-left: 1rem;
+}
+
+@keyframes verse-highlight {
+    0% { background-color: var(--highlight-bg); }
+    100% { background-color: transparent; }
+}
+
 @media (max-width: 768px) {
     .controls {
         grid-template-columns: 1fr;
@@ -188,24 +203,16 @@ footer button:disabled {
     header h1 {
         font-size: 1.2rem;
     }
-    
-    #theme-toggle {
-        font-size: 1.2rem;
-    }
 }
 
 @media (max-width: 480px) {
-    .verse-item {
+    .verse-item, .search-result {
         padding: 0.8rem;
         font-size: 0.9rem;
     }
     
     footer button {
         padding: 0.6rem;
-        font-size: 0.9rem;
-    }
-    
-    select, #search-input {
         font-size: 0.9rem;
     }
 }

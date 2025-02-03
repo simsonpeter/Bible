@@ -2,7 +2,6 @@ let currentVerseIndex = 0;
 let bibleData = [];
 
 const verseTextElement = document.getElementById('verse-text');
-const verseReferenceElement = document.getElementById('verse-reference');
 const prevButton = document.getElementById('prev-btn');
 const nextButton = document.getElementById('next-btn');
 
@@ -18,7 +17,6 @@ fetch('tamil_bible.json')
 function updateVerse() {
     const verse = bibleData[currentVerseIndex];
     verseTextElement.textContent = verse.text;
-    verseReferenceElement.textContent = `- ${verse.book} ${verse.chapter}:${verse.verse}`;
 }
 
 prevButton.addEventListener('click', () => {

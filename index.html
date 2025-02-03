@@ -8,15 +8,13 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header>
             <h1>தமிழ் Bible App</h1>
             <button id="theme-toggle">🌓</button>
         </header>
 
-        <!-- Main Content -->
         <main>
-            <div class="selection">
+            <div class="controls">
                 <select id="book-select">
                     <option value="">புத்தகத்தைத் தேர்ந்தெடுக்கவும்</option>
                 </select>
@@ -24,18 +22,17 @@
                     <option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>
                 </select>
             </div>
+            
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="வசனத்தைத் தேடுக...">
             </div>
-            <div id="verse-display">
-                <!-- Verses will be dynamically added here -->
-            </div>
+
+            <div id="verse-display"></div>
         </main>
 
-        <!-- Footer -->
         <footer>
-            <button id="prev-chapter-btn">முந்தைய அதிகாரம்</button>
-            <button id="next-chapter-btn">அடுத்த அதிகாரம்</button>
+            <button id="prev-chapter-btn">← முந்தைய</button>
+            <button id="next-chapter-btn">அடுத்தது →</button>
         </footer>
     </div>
     <script src="script.js"></script>

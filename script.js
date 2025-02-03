@@ -1,80 +1,62 @@
-// Theme Toggle
 const themeToggle = document.getElementById('theme-toggle');
+const bookSelect = document.getElementById('book-select');
+const chapterSelect = document.getElementById('chapter-select');
+const verseDisplay = document.getElementById('verse-display');
+const searchInput = document.getElementById('search-input');
+const prevChapterBtn = document.getElementById('prev-chapter-btn');
+const nextChapterBtn = document.getElementById('next-chapter-btn');
+
+let currentBook = null;
+let currentChapter = null;
+let allBooksData = [];
+
+// Theme management
 themeToggle.addEventListener('click', () => {
-    document.body.dataset.theme = 
-        document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', document.body.dataset.theme);
 });
 
 // Initialize theme
-const savedTheme = localStorage.getItem('theme') || 'light';
-document.body.dataset.theme = savedTheme;
+document.body.dataset.theme = localStorage.getItem('theme') || 'light';
 
-// App State
-let currentBook = null;
-let currentChapter = null;
-let chapters = [];
-let currentVerses = [];
-let allBooksData = [];
-let isSearching = false;
-
-// DOM Elements
-const bookSelect = document.getElementById('book-select');
-const chapterSelect = document.getElementById('chapter-select');
-const verseDisplay = document.getElementById('verse-display');
-const prevChapterBtn = document.getElementById('prev-chapter-btn');
-const nextChapterBtn = document.getElementById('next-chapter-btn');
-const searchInput = document.getElementById('search-input');
-
-// Load All Books Data
+// Load initial data
 async function initializeApp() {
     try {
         const booksResponse = await fetch('books.json');
         const books = await booksResponse.json();
         
-        // Load all books data in parallel
         allBooksData = await Promise.all(books.map(async book => {
             const response = await fetch(`books/${book.book.file}`);
-            const data = await response.json();
-            return {
-                ...book,
-                chapters: data.chapters
-            };
+            return await response.json();
         }));
         
-        // Populate book selector
-        books.forEach((book, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = book.book.tamil;
-            bookSelect.appendChild(option);
-        });
+        populateBookSelect(books);
     } catch (error) {
-        console.error('Failed to initialize app:', error);
-        verseDisplay.innerHTML = '<div class="error">Failed to load Bible data. Please try again later.</div>';
+        console.error('Failed to load Bible data:', error);
+        verseDisplay.innerHTML = '<div class="error">Failed to load Bible database</div>';
     }
 }
 
-// Initialize the app
-initializeApp();
+function populateBookSelect(books) {
+    books.forEach((book, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = book.book.tamil;
+        bookSelect.appendChild(option);
+    });
+}
 
-// Book Selection
 bookSelect.addEventListener('change', async (e) => {
-    try {
-        currentBook = e.target.value;
-        if (currentBook === "") return;
-
-        const selectedBook = allBooksData[currentBook];
-        chapters = selectedBook.chapters;
-        populateChapters();
-        currentChapter = 0;
-        loadChapter(currentChapter);
-    } catch (error) {
-        console.error('Book selection error:', error);
-    }
+    currentBook = e.target.value;
+    if (currentBook === "") return;
+    
+    const bookData = allBooksData[currentBook];
+    populateChapterSelect(bookData.chapters);
+    currentChapter = 0;
+    loadChapter(bookData.chapters[0]);
 });
 
-function populateChapters() {
+function populateChapterSelect(chapters) {
     chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>';
     chapters.forEach((chapter, index) => {
         const option = document.createElement('option');
@@ -84,127 +66,72 @@ function populateChapters() {
     });
 }
 
-// Chapter Selection
+function loadChapter(chapter) {
+    verseDisplay.innerHTML = chapter.verses.map(verse => `
+        <div class="verse-item">
+            <strong>${verse.verse}.</strong> ${verse.text}
+        </div>
+    `).join('');
+}
+
 chapterSelect.addEventListener('change', (e) => {
-    try {
-        currentChapter = parseInt(e.target.value);
-        if (isNaN(currentChapter)) return;
-        loadChapter(currentChapter);
-    } catch (error) {
-        console.error('Chapter selection error:', error);
-    }
+    const chapterIndex = e.target.value;
+    if (chapterIndex === "") return;
+    currentChapter = chapterIndex;
+    loadChapter(allBooksData[currentBook].chapters[chapterIndex]);
 });
 
-// Chapter Navigation
+// Navigation buttons
 prevChapterBtn.addEventListener('click', () => {
     if (currentChapter > 0) {
         currentChapter--;
-        loadChapter(currentChapter);
+        chapterSelect.value = currentChapter;
+        loadChapter(allBooksData[currentBook].chapters[currentChapter]);
     }
 });
 
 nextChapterBtn.addEventListener('click', () => {
-    if (currentChapter < chapters.length - 1) {
+    const maxChapter = allBooksData[currentBook].chapters.length - 1;
+    if (currentChapter < maxChapter) {
         currentChapter++;
-        loadChapter(currentChapter);
+        chapterSelect.value = currentChapter;
+        loadChapter(allBooksData[currentBook].chapters[currentChapter]);
     }
 });
 
-// Load Chapter
-function loadChapter(chapterIndex) {
-    try {
-        isSearching = false;
-        if (!chapters[chapterIndex]) return;
-
-        currentChapter = chapterIndex;
-        const chapter = chapters[chapterIndex];
-        currentVerses = chapter.verses;
-        
-        verseDisplay.innerHTML = currentVerses
-            .map(verse => `
-                <div class="verse-item">
-                    <strong>${verse.verse}.</strong> ${verse.text}
-                </div>
-            `).join('');
-
-        chapterSelect.value = chapterIndex;
-        updateNavigation();
-        clearSearch();
-    } catch (error) {
-        console.error('Chapter load error:', error);
-    }
-}
-
-function updateNavigation() {
-    prevChapterBtn.disabled = currentChapter === 0;
-    nextChapterBtn.disabled = currentChapter === chapters.length - 1;
-}
-
-function clearSearch() {
-    searchInput.value = '';
-}
-
-// Search Utilities
-function highlightText(text, searchTerm) {
-    if (!searchTerm) return text;
-    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
-}
-
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// Search Functionality
-function performSearch(searchTerm) {
-    try {
-        if (searchTerm.length < 2) {
-            if (isSearching) loadChapter(currentChapter);
-            return;
-        }
-
-        isSearching = true;
-        const normalizedSearch = searchTerm.toLowerCase();
-        const results = [];
-        
-        allBooksData.forEach(book => {
-            book.chapters.forEach(chapter => {
-                chapter.verses.forEach(verse => {
-                    if (verse.text.toLowerCase().includes(normalizedSearch)) {
-                        results.push({
-                            book: book.book.tamil,
-                            chapter: chapter.chapter,
-                            verse: verse.verse,
-                            text: verse.text
-                        });
-                    }
-                });
+// Search functionality
+searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase().trim();
+    if (searchTerm.length < 2) return;
+    
+    const results = [];
+    allBooksData.forEach((book, bookIndex) => {
+        book.chapters.forEach(chapter => {
+            chapter.verses.forEach(verse => {
+                if (verse.text.toLowerCase().includes(searchTerm)) {
+                    results.push({
+                        book: bookIndex,
+                        chapter: chapter.chapter,
+                        verse: verse.verse,
+                        text: verse.text
+                    });
+                }
             });
         });
-
-        verseDisplay.innerHTML = results
-            .map(result => `
-                <div class="verse-item">
-                    <div class="verse-context">
-                        ${result.book} ${result.chapter}:${result.verse}
-                    </div>
-                    ${highlightText(result.text, searchTerm)}
-                </div>
-            `).join('');
-
-        if (results.length === 0) {
-            verseDisplay.innerHTML = '<div class="no-results">No verses found matching your search.</div>';
-        }
-    } catch (error) {
-        console.error('Search error:', error);
-    }
-}
-
-// Debounced Search
-let searchTimeout;
-searchInput.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        performSearch(e.target.value.trim());
-    }, 300);
+    });
+    
+    verseDisplay.innerHTML = results.map(result => `
+        <div class="verse-item">
+            <div class="verse-context">
+                ${bookSelect.options[result.book].text} ${result.chapter}:${result.verse}
+            </div>
+            ${result.text.replace(
+                new RegExp(searchTerm, 'gi'), 
+                match => `<span class="highlight">${match}</span>`
+            )}
+        </div>
+    `).join('');
 });
+
+// Initialize the app
+initializeApp();

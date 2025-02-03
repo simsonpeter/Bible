@@ -1,13 +1,9 @@
 let currentBook = null;
 let currentChapter = null;
-let currentVerseIndex = 0;
-let verses = [];
 
 const bookSelect = document.getElementById('book-select');
 const chapterSelect = document.getElementById('chapter-select');
-const verseTextElement = document.getElementById('verse-text');
-const prevButton = document.getElementById('prev-btn');
-const nextButton = document.getElementById('next-btn');
+const verseDisplay = document.getElementById('verse-display');
 
 // Load book names
 fetch('books.json')
@@ -29,8 +25,7 @@ bookSelect.addEventListener('change', (event) => {
 
     currentBook = bookIndex;
     currentChapter = null;
-    currentVerseIndex = 0;
-    verses = [];
+    verseDisplay.innerHTML = ""; // Clear verse display
 
     // Load the selected book's file name from books.json
     fetch('books.json')
@@ -67,7 +62,6 @@ chapterSelect.addEventListener('change', (event) => {
     if (chapterIndex === "") return;
 
     currentChapter = chapterIndex;
-    currentVerseIndex = 0;
 
     // Load the selected book's file name from books.json
     fetch('books.json')
@@ -81,31 +75,21 @@ chapterSelect.addEventListener('change', (event) => {
                 .then(response => response.json())
                 .then(data => {
                     console.log("Loaded chapter data:", data.chapters[chapterIndex]); // Debugging: Log the loaded chapter data
-                    verses = data.chapters[chapterIndex].verses;
-                    updateVerse();
+                    const verses = data.chapters[chapterIndex].verses;
+                    displayVerses(verses); // Display all verses
                 })
                 .catch(error => console.error('Error loading verses:', error));
         })
         .catch(error => console.error('Error loading books.json:', error));
 });
 
-// Update verse display
-function updateVerse() {
-    const verse = verses[currentVerseIndex];
-    verseTextElement.textContent = `${verse.verse}. ${verse.text}`;
+// Function to display all verses
+function displayVerses(verses) {
+    verseDisplay.innerHTML = ""; // Clear previous verses
+    verses.forEach(verse => {
+        const verseItem = document.createElement('div');
+        verseItem.className = 'verse-item';
+        verseItem.innerHTML = `<strong>${verse.verse}.</strong> ${verse.text}`;
+        verseDisplay.appendChild(verseItem);
+    });
 }
-
-// Navigation buttons
-prevButton.addEventListener('click', () => {
-    if (currentVerseIndex > 0) {
-        currentVerseIndex--;
-        updateVerse();
-    }
-});
-
-nextButton.addEventListener('click', () => {
-    if (currentVerseIndex < verses.length - 1) {
-        currentVerseIndex++;
-        updateVerse();
-    }
-});

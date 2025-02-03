@@ -13,10 +13,10 @@ const nextButton = document.getElementById('next-btn');
 fetch('books.json')
     .then(response => response.json())
     .then(data => {
-        data.forEach((book, index) => {
+        data.forEach((bookObj, index) => {
             const option = document.createElement('option');
             option.value = index;
-            option.textContent = book;
+            option.textContent = bookObj.book.tamil; // Use Tamil book name
             bookSelect.appendChild(option);
         });
     })
@@ -33,7 +33,7 @@ bookSelect.addEventListener('change', (event) => {
     verses = [];
 
     // Load chapters for the selected book
-    fetch(`books/${bookIndex + 1}.json`)
+    fetch(`books/${bookIndex + 1}.json`) // Assuming book files are named 1.json, 2.json, etc.
         .then(response => response.json())
         .then(data => {
             chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>';

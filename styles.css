@@ -1,3 +1,4 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -6,7 +7,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
 .container {
@@ -15,13 +16,15 @@ body {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    width: 90%;
     max-width: 600px;
-    width: 100%;
+    margin: 20px auto;
 }
 
 header h1 {
     margin-bottom: 20px;
     color: #333;
+    font-size: 1.5em;
 }
 
 .selection {
@@ -34,6 +37,8 @@ select {
     margin: 5px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    width: 100%;
+    max-width: 200px;
 }
 
 #verse-display {
@@ -46,9 +51,16 @@ select {
     color: #555;
 }
 
+#verse-reference {
+    font-style: italic;
+    color: #777;
+    margin-top: 10px;
+}
+
 .navigation {
     display: flex;
     justify-content: space-between;
+    gap: 10px;
 }
 
 button {
@@ -60,6 +72,7 @@ button {
     color: #fff;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    flex: 1;
 }
 
 button:hover {
@@ -69,4 +82,45 @@ button:hover {
 button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1.2em;
+    }
+
+    select {
+        font-size: 0.9em;
+        padding: 8px;
+    }
+
+    #verse-text {
+        font-size: 1em;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 400px) {
+    header h1 {
+        font-size: 1em;
+    }
+
+    select {
+        font-size: 0.8em;
+        padding: 6px;
+    }
+
+    #verse-text {
+        font-size: 0.9em;
+    }
+
+    button {
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
 }

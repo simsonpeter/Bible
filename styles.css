@@ -1,30 +1,48 @@
-/* General Styles */
+/* Reset default margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Full-screen app container */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
 }
 
-.container {
+.app-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh; /* Full height of the viewport */
     background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+header {
+    background-color: #007BFF;
+    color: #fff;
+    padding: 15px;
     text-align: center;
-    width: 90%;
-    max-width: 600px;
-    margin: 20px auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 header h1 {
-    margin-bottom: 20px;
-    color: #333;
     font-size: 1.5em;
+    margin: 0;
+}
+
+/* Main Content */
+main {
+    flex: 1; /* Take up remaining space */
+    padding: 20px;
+    overflow-y: auto; /* Enable scrolling for content */
 }
 
 .selection {
@@ -42,14 +60,12 @@ select {
 }
 
 #verse-display {
-    margin-bottom: 20px;
-    max-height: 400px; /* Limit height for scrollable container */
-    overflow-y: auto; /* Enable vertical scrolling */
     text-align: left;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f9f9f9;
+    margin-top: 20px;
 }
 
 .verse-item {
@@ -63,6 +79,35 @@ select {
     color: #007BFF;
 }
 
+/* Footer */
+footer {
+    background-color: #007BFF;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+footer button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #007BFF;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+footer button:hover {
+    background-color: #f0f0f0;
+}
+
+footer button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
 /* Media Queries for Mobile Devices */
 @media (max-width: 600px) {
     header h1 {
@@ -74,12 +119,13 @@ select {
         padding: 8px;
     }
 
-    #verse-display {
-        max-height: 300px; /* Adjust height for smaller screens */
-    }
-
     .verse-item {
         font-size: 1em;
+    }
+
+    footer button {
+        padding: 8px 16px;
+        font-size: 0.9em;
     }
 }
 
@@ -93,11 +139,12 @@ select {
         padding: 6px;
     }
 
-    #verse-display {
-        max-height: 250px; /* Adjust height for very small screens */
-    }
-
     .verse-item {
         font-size: 0.9em;
+    }
+
+    footer button {
+        padding: 6px 12px;
+        font-size: 0.8em;
     }
 }

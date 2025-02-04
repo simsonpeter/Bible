@@ -3,42 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <!-- Add these meta tags -->
-  <meta name="theme-color" content="#2c3e50">
-  <link rel="manifest" href="/manifest.json">
-  
-  <!-- iOS meta tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <title>Tamil Bible App</title>
+    <meta name="theme-color" content="#2c3e50">
+    <title>தமிழ் Bible App</title>
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1>NJC Tamil Bible</h1>
+            <h1>தமிழ் Bible App</h1>
             <button id="theme-toggle">🌓</button>
         </header>
 
         <main>
-    <div class="controls">
-        <select id="book-select">
-            <option value="">புத்தகத்தைத் தேர்ந்தெடுக்கவும்</option>
-        </select>
-        <select id="chapter-select">
-            <option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>
-        </select>
-    </div>
-    
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="வசனத்தைத் தேடுக...">
-    </div>
+            <div class="controls">
+                <select id="book-select">
+                    <option value="">புத்தகத்தைத் தேர்ந்தெடுக்கவும்</option>
+                </select>
+                <select id="chapter-select">
+                    <option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>
+                </select>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="வசனத்தைத் தேடுக...">
+            </div>
 
-    <div id="verse-display">
-        <!-- Daily Verse will be inserted here -->
-    </div>
+            <div id="verse-display">
+                <!-- Daily Verse and Chapter Verses will be loaded here -->
+            </div>
         </main>
+
         <footer>
             <button id="prev-chapter-btn">← முந்தைய</button>
             <button id="next-chapter-btn">அடுத்தது →</button>

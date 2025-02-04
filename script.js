@@ -10,6 +10,7 @@ let currentBook = null;
 let currentChapter = null;
 let allBooksData = [];
 let isSearching = false;
+let deferredPrompt; // For PWA install prompt
 
 // Theme Management
 themeToggle.addEventListener('click', () => {
@@ -43,7 +44,7 @@ async function loadBibleData() {
         populateBookSelect(books);
     } catch (error) {
         console.error('Failed to load Bible data:', error);
-        verseDisplay.innerHTML = '<div class="error">பைபிள் தரவுத்தளத்தை ஏற்ற முடியவில்லை</div>';
+        showError('பைபிள் தரவுத்தளத்தை ஏற்ற முடியவில்லை');
     }
 }
 
@@ -63,6 +64,8 @@ bookSelect.addEventListener('change', async (e) => {
     if (currentBook === "") return;
     
     const selectedBook = allBooksData[currentBook];
+    if (!selectedBook) return;
+    
     populateChapterSelect(selectedBook.chapters);
     currentChapter = 0;
     loadChapter(currentChapter);
@@ -95,14 +98,17 @@ function loadChapter(chapterIndex) {
             </div>
         `).join('');
         
-        // Update dropdown selections
-        bookSelect.value = currentBook;
-        chapterSelect.value = chapterIndex;
+        updateSelections();
         updateNavigation();
-        searchInput.value = '';
     } catch (error) {
         console.error('Chapter load error:', error);
+        showError('அதிகாரத்தை ஏற்ற முடியவில்லை');
     }
+}
+
+function updateSelections() {
+    bookSelect.value = currentBook;
+    chapterSelect.value = currentChapter;
 }
 
 function updateNavigation() {
@@ -142,6 +148,7 @@ function performSearch(searchTerm) {
         displaySearchResults(results, searchTerm);
     } catch (error) {
         console.error('Search error:', error);
+        showError('தேடல் செயல்பாட்டில் பிழை');
     }
 }
 
@@ -160,9 +167,7 @@ function displaySearchResults(results, searchTerm) {
           `).join('')
         : '<div class="no-results">எந்த வசனங்களும் கிடைக்கவில்லை</div>';
 
-    document.querySelectorAll('.search-result').forEach(result => {
-        result.addEventListener('click', handleSearchResultClick);
-    });
+    addSearchResultHandlers();
 }
 
 function highlightText(text, searchTerm) {
@@ -176,25 +181,44 @@ function escapeRegExp(string) {
 }
 
 // Search Result Navigation
+function addSearchResultHandlers() {
+    document.querySelectorAll('.search-result').forEach(result => {
+        result.addEventListener('click', handleSearchResultClick);
+    });
+}
+
 function handleSearchResultClick(event) {
     const result = event.currentTarget;
     const bookIndex = parseInt(result.dataset.bookIndex);
     const chapterIndex = parseInt(result.dataset.chapterIndex);
     const verseNumber = parseInt(result.dataset.verseNumber);
 
-    currentBook = bookIndex;
-    const selectedBook = allBooksData[currentBook];
-    
-    // Update book selection and UI
-    bookSelect.value = currentBook;
-    populateChapterSelect(selectedBook.chapters);
-    
-    // Update chapter selection and load
-    currentChapter = chapterIndex;
-    chapterSelect.value = chapterIndex;
-    loadChapter(chapterIndex);
-    
-    // Highlight target verse
+    navigateToVerse(bookIndex, chapterIndex, verseNumber);
+}
+
+async function navigateToVerse(bookIndex, chapterIndex, verseNumber) {
+    try {
+        currentBook = bookIndex;
+        const selectedBook = allBooksData[currentBook];
+        
+        // Update UI selections
+        bookSelect.value = currentBook;
+        populateChapterSelect(selectedBook.chapters);
+        
+        // Load chapter after short delay to allow DOM update
+        setTimeout(() => {
+            chapterSelect.value = chapterIndex;
+            loadChapter(chapterIndex);
+            highlightVerse(verseNumber);
+        }, 100);
+        
+    } catch (error) {
+        console.error('Navigation error:', error);
+        showError('வசனத்திற்கு செல்ல முடியவில்லை');
+    }
+}
+
+function highlightVerse(verseNumber) {
     setTimeout(() => {
         const verseElement = document.querySelector(`.verse-item[data-verse="${verseNumber}"]`);
         if (verseElement) {
@@ -202,7 +226,12 @@ function handleSearchResultClick(event) {
             verseElement.classList.add('highlight-verse');
             setTimeout(() => verseElement.classList.remove('highlight-verse'), 2000);
         }
-    }, 100);
+    }, 200);
+}
+
+// Error Handling
+function showError(message) {
+    verseDisplay.innerHTML = `<div class="error">${message}</div>`;
 }
 
 // Event Listeners
@@ -220,6 +249,7 @@ nextChapterBtn.addEventListener('click', () => {
     if (currentChapter < maxChapter) loadChapter(currentChapter + 1);
 });
 
+// Debounced Search Input
 let searchTimeout;
 searchInput.addEventListener('input', (e) => {
     clearTimeout(searchTimeout);
@@ -227,6 +257,45 @@ searchInput.addEventListener('input', (e) => {
         performSearch(e.target.value.trim());
     }, 300);
 });
+
+// PWA Installation
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstallPrompt();
+});
+
+function showInstallPrompt() {
+    const installButton = document.createElement('button');
+    installButton.id = 'install-btn';
+    installButton.textContent = 'ஆப் நிறுவு';
+    installButton.className = 'install-prompt';
+    document.body.appendChild(installButton);
+
+    installButton.addEventListener('click', async () => {
+        installButton.disabled = true;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('User accepted install');
+        }
+        installButton.remove();
+    });
+}
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('ServiceWorker registered:', registration);
+                registration.update(); // Check for updates immediately
+            })
+            .catch(error => {
+                console.log('ServiceWorker registration failed:', error);
+            });
+    });
+}
 
 // Initialize App
 loadBibleData();

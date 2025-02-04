@@ -282,7 +282,82 @@ function showInstallPrompt() {
         installButton.remove();
     });
 }
+function getDailyVerse() {
+    const today = new Date().toDateString();
+    const storedVerse = JSON.parse(localStorage.getItem('dailyVerse'));
 
+    if (storedVerse && storedVerse.date === today) {
+        return storedVerse.verse;
+    }
+
+    // Get a random verse
+    const randomBook = allBooksData[Math.floor(Math.random() * allBooksData.length)];
+    const randomChapter = randomBook.chapters[Math.floor(Math.random() * randomBook.chapters.length)];
+    const randomVerse = randomChapter.verses[Math.floor(Math.random() * randomChapter.verses.length)];
+
+    const dailyVerse = {
+        date: today,
+        verse: {
+            book: randomBook.book.tamil,
+            chapter: randomChapter.chapter,
+            verse: randomVerse.verse,
+            text: randomVerse.text
+        }
+    };
+
+    localStorage.setItem('dailyVerse', JSON.stringify(dailyVerse));
+    return dailyVerse.verse;
+}
+
+function displayDailyVerse() {
+    const dailyVerse = getDailyVerse();
+    const dailyVerseElement = document.createElement('div');
+    dailyVerseElement.className = 'daily-verse';
+    dailyVerseElement.innerHTML = `
+        <h3>இன்றைய வசனம்</h3>
+        <p>${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}</p>
+        <p>${dailyVerse.text}</p>
+    `;
+    verseDisplay.prepend(dailyVerseElement);
+}
+function getDailyVerse() {
+    const today = new Date().toDateString();
+    const storedVerse = JSON.parse(localStorage.getItem('dailyVerse'));
+
+    if (storedVerse && storedVerse.date === today) {
+        return storedVerse.verse;
+    }
+
+    // Get a random verse
+    const randomBook = allBooksData[Math.floor(Math.random() * allBooksData.length)];
+    const randomChapter = randomBook.chapters[Math.floor(Math.random() * randomBook.chapters.length)];
+    const randomVerse = randomChapter.verses[Math.floor(Math.random() * randomChapter.verses.length)];
+
+    const dailyVerse = {
+        date: today,
+        verse: {
+            book: randomBook.book.tamil,
+            chapter: randomChapter.chapter,
+            verse: randomVerse.verse,
+            text: randomVerse.text
+        }
+    };
+
+    localStorage.setItem('dailyVerse', JSON.stringify(dailyVerse));
+    return dailyVerse.verse;
+}
+
+function displayDailyVerse() {
+    const dailyVerse = getDailyVerse();
+    const dailyVerseElement = document.createElement('div');
+    dailyVerseElement.className = 'daily-verse';
+    dailyVerseElement.innerHTML = `
+        <h3>இன்றைய வசனம்</h3>
+        <p>${dailyVerse.book} ${dailyVerse.chapter}:${dailyVerse.verse}</p>
+        <p>${dailyVerse.text}</p>
+    `;
+    verseDisplay.prepend(dailyVerseElement);
+}
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

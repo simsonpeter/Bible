@@ -204,6 +204,18 @@ footer button:disabled {
         font-size: 1.2rem;
     }
 }
+.daily-verse {
+    background-color: var(--verse-bg);
+    border: 1px solid var(--verse-border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.daily-verse h3 {
+    color: var(--verse-number-color);
+    margin-bottom: 0.5rem;
+}
 
 @media (max-width: 480px) {
     .verse-item, .search-result {

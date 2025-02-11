@@ -6,149 +6,30 @@
     <meta name="theme-color" content="#2c3e50">
     <title>Tamil Bible App</title>
     <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="styles.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #333333;
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --font-size: 1rem;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --text-color: #ffffff;
-            --primary-color: #3498db;
-            --secondary-color: #2c3e50;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Arial Unicode MS', 'Tahoma', 'Nirmala UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            transition: all 0.3s ease;
-        }
-
-        .app-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--primary-color);
-            border-radius: 5px;
-        }
-
-        #verse-display {
-            height: 60vh;
-            overflow-y: auto;
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid var(--primary-color);
-            border-radius: 5px;
-            font-size: var(--font-size);
-        }
-
-        footer {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .bookmark-btn {
-            background-color: var(--secondary-color);
-        }
-
-        .settings {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .verse-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .verse-number {
-            color: var(--secondary-color);
-            font-weight: bold;
-        }
-
-        @media (max-width: 480px) {
-            .controls {
-                grid-template-columns: 1fr;
-            }
-            
-            footer {
-                flex-direction: column;
-            }
-        }
-    </style>
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1>தமிழ் பைபிள்</h1>
-            <div class="settings">
-                <button id="theme-toggle">🌓</button>
-                <button id="text-size-down">A-</button>
-                <button id="text-size-up">A+</button>
-            </div>
+            <h1>Tamil Bible App</h1>
+            <button id="theme-toggle">🌓</button>
         </header>
 
         <main>
             <div class="controls">
                 <select id="book-select">
-                    <option value="">புத்தகத்தைத் தேர்ந்தெடு</option>
+                    <option value="">புத்தகத்தைத் தேர்ந்தெடுக்கவும்</option>
                 </select>
                 <select id="chapter-select">
-                    <option value="">அதிகாரத்தைத் தேர்ந்தெடு</option>
+                    <option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>
                 </select>
             </div>
             
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="வார்த்தையைத் தேடு...">
+                <input type="text" id="search-input" placeholder="வசனத்தைத் தேடுக...">
             </div>
 
             <div id="verse-display"></div>
@@ -156,186 +37,9 @@
 
         <footer>
             <button id="prev-chapter-btn">← முந்தைய</button>
-            <button id="bookmark-btn" class="bookmark-btn">புத்தகமார்க்</button>
             <button id="next-chapter-btn">அடுத்தது →</button>
         </footer>
     </div>
-
-    <script>
-        // Bible Data (Sample Data - Full version needs complete data)
-        const bibleData = {
-            books: [
-                {
-                    id: 1,
-                    name: "ஆதியாகமம்",
-                    chapters: [
-                        {
-                            chapter: 1,
-                            verses: [
-                                {verse: 1, text: "தொடக்கத்தில் தேவன் வானத்தையும் பூமியையும் சிருஷ்டித்தார்."},
-                                {verse: 2, text: "பூமியானது வெறுமையாயும் களங்கமாயும் இருந்தது..."}
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
-
-        // App State
-        let currentState = {
-            book: null,
-            chapter: null,
-            verses: [],
-            bookmarks: [],
-            fontSize: 1
-        };
-
-        // Initialize App
-        function initApp() {
-            // Populate Books
-            const bookSelect = document.getElementById('book-select');
-            bibleData.books.forEach(book => {
-                const option = document.createElement('option');
-                option.value = book.id;
-                option.textContent = book.name;
-                bookSelect.appendChild(option);
-            });
-
-            // Load saved state
-            const savedState = localStorage.getItem('bibleAppState');
-            if(savedState) {
-                currentState = JSON.parse(savedState);
-                applySavedState();
-            }
-
-            // Event Listeners
-            document.getElementById('book-select').addEventListener('change', loadChapters);
-            document.getElementById('chapter-select').addEventListener('change', loadVerses);
-            document.getElementById('search-input').addEventListener('input', searchVerses);
-            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-            document.getElementById('text-size-up').addEventListener('click', () => adjustTextSize(0.1));
-            document.getElementById('text-size-down').addEventListener('click', () => adjustTextSize(-0.1));
-            document.getElementById('prev-chapter-btn').addEventListener('click', prevChapter);
-            document.getElementById('next-chapter-btn').addEventListener('click', nextChapter);
-            document.getElementById('bookmark-btn').addEventListener('click', toggleBookmark);
-        }
-
-        // Core Functions
-        function loadChapters() {
-            const bookId = this.value;
-            currentState.book = bibleData.books.find(b => b.id == bookId);
-            
-            const chapterSelect = document.getElementById('chapter-select');
-            chapterSelect.innerHTML = '<option value="">அதிகாரத்தைத் தேர்ந்தெடு</option>';
-            
-            currentState.book.chapters.forEach(ch => {
-                const option = document.createElement('option');
-                option.value = ch.chapter;
-                option.textContent = `அதிகாரம் ${ch.chapter}`;
-                chapterSelect.appendChild(option);
-            });
-        }
-
-        function loadVerses() {
-            const chapterNum = this.value;
-            currentState.chapter = currentState.book.chapters.find(ch => ch.chapter == chapterNum);
-            currentState.verses = currentState.chapter.verses;
-            displayVerses(currentState.verses);
-            saveState();
-        }
-
-        function displayVerses(verses) {
-            const container = document.getElementById('verse-display');
-            container.innerHTML = verses.map(v => `
-                <div class="verse-item">
-                    <span class="verse-number">${v.verse}</span> 
-                    ${v.text}
-                </div>
-            `).join('');
-        }
-
-        // Additional Features
-        function toggleTheme() {
-            document.documentElement.setAttribute('data-theme',
-                document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-            );
-            saveState();
-        }
-
-        function adjustTextSize(change) {
-            currentState.fontSize = Math.min(2, Math.max(0.8, currentState.fontSize + change));
-            document.documentElement.style.setProperty('--font-size', `${currentState.fontSize}rem`);
-            saveState();
-        }
-
-        function toggleBookmark() {
-            const bookmark = {
-                book: currentState.book.id,
-                chapter: currentState.chapter.chapter,
-                timestamp: new Date()
-            };
-            
-            const existing = currentState.bookmarks.find(b => 
-                b.book === bookmark.book && b.chapter === bookmark.chapter
-            );
-            
-            if(existing) {
-                currentState.bookmarks = currentState.bookmarks.filter(b => 
-                    !(b.book === bookmark.book && b.chapter === bookmark.chapter)
-                );
-            } else {
-                currentState.bookmarks.push(bookmark);
-            }
-            saveState();
-        }
-
-        function searchVerses(e) {
-            const term = e.target.value.toLowerCase();
-            const results = currentState.verses.filter(v => 
-                v.text.toLowerCase().includes(term)
-            );
-            displayVerses(results);
-        }
-
-        // State Management
-        function saveState() {
-            currentState.theme = document.documentElement.getAttribute('data-theme') || 'light';
-            localStorage.setItem('bibleAppState', JSON.stringify(currentState));
-        }
-
-        function applySavedState() {
-            // Apply theme
-            document.documentElement.setAttribute('data-theme', currentState.theme);
-            
-            // Apply font size
-            document.documentElement.style.setProperty('--font-size', `${currentState.fontSize}rem`);
-            
-            // Restore selections
-            if(currentState.book && currentState.chapter) {
-                document.getElementById('book-select').value = currentState.book.id;
-                loadChapters();
-                setTimeout(() => {
-                    document.getElementById('chapter-select').value = currentState.chapter.chapter;
-                    loadVerses();
-                }, 100);
-            }
-        }
-
-        // Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('SW registered:', registration);
-                    })
-                    .catch(error => {
-                        console.log('SW registration failed:', error);
-                    });
-            });
-        }
-
-        // Initialize App
-        window.addEventListener('DOMContentLoaded', initApp);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

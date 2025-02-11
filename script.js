@@ -294,6 +294,130 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+// Enhanced script.js
+const elements = {
+    // ... previous elements ...
+    bookmarkBtn: document.getElementById('bookmark-btn'),
+    shareBtn: document.getElementById('share-btn'),
+    bookmarksPanel: document.getElementById('bookmarks-panel'),
+    closeBookmarks: document.getElementById('close-bookmarks')
+};
+
+// State with bookmarks and settings
+let appState = {
+    bookmarks: JSON.parse(localStorage.getItem('bookmarks')) || [],
+    settings: {
+        fontSize: 1,
+        theme: localStorage.getItem('theme') || 'light'
+    },
+    currentLocation: null
+};
+
+// Initialize with additional features
+function initApp() {
+    // ... previous init code ...
+    setupBookmarks();
+    setupSharing();
+    setupSettings();
+}
+
+// Bookmark functionality
+function setupBookmarks() {
+    elements.bookmarkBtn.addEventListener('click', toggleBookmark);
+    elements.closeBookmarks.addEventListener('click', () => {
+        elements.bookmarksPanel.classList.remove('active');
+    });
+    
+    // Load bookmarks on startup
+    renderBookmarks();
+}
+
+function toggleBookmark() {
+    const { book, chapter } = currentState;
+    const verse = document.querySelector('.verse-item.highlight')?.dataset.verse;
+    
+    if(!book || !chapter || !verse) return;
+
+    const existing = appState.bookmarks.find(b => 
+        b.book === book.id && 
+        b.chapter === chapter.chapter && 
+        b.verse === verse
+    );
+
+    if(existing) {
+        appState.bookmarks = appState.bookmarks.filter(b => b !== existing);
+    } else {
+        appState.bookmarks.push({
+            book: book.id,
+            chapter: chapter.chapter,
+            verse: verse,
+            timestamp: new Date().toISOString(),
+            text: getVerseText(book.id, chapter.chapter, verse)
+        });
+    }
+
+    localStorage.setItem('bookmarks', JSON.stringify(appState.bookmarks));
+    renderBookmarks();
+}
+
+function renderBookmarks() {
+    elements.bookmarksPanel.innerHTML = appState.bookmarks
+        .map((b, index) => `
+            <div class="bookmark-item" data-index="${index}">
+                <div class="meta">${getBookName(b.book)} ${b.chapter}:${b.verse}</div>
+                <div class="text">${b.text}</div>
+                <button class="goto-btn">Go</button>
+                <button class="delete-btn">×</button>
+            </div>
+        `).join('');
+    
+    // Add event listeners for bookmark actions
+    document.querySelectorAll('.bookmark-item').forEach(item => {
+        item.querySelector('.goto-btn').addEventListener('click', () => {
+            const index = item.dataset.index;
+            const bookmark = appState.bookmarks[index];
+            navigateToBookmark(bookmark);
+        });
+        
+        item.querySelector('.delete-btn').addEventListener('click', () => {
+            appState.bookmarks.splice(item.dataset.index, 1);
+            localStorage.setItem('bookmarks', JSON.stringify(appState.bookmarks));
+            renderBookmarks();
+        });
+    });
+}
+
+// Verse Sharing
+function setupSharing() {
+    elements.shareBtn.addEventListener('click', async () => {
+        const verse = document.querySelector('.verse-item.highlight');
+        if(!verse) return;
+
+        const shareData = {
+            title: "Tamil Bible Verse",
+            text: verse.textContent,
+            url: generateVerseUrl()
+        };
+
+        try {
+            if(navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback for desktop
+                await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+                alert('Verse copied to clipboard!');
+            }
+        } catch(err) {
+            console.error('Sharing failed:', err);
+        }
+    });
+}
+
+function generateVerseUrl() {
+    const { book, chapter } = currentState;
+    const verse = document.querySelector('.verse-item.highlight')?.dataset.verse;
+    return `${window.location.origin}#${book.id}/${chapter.chapter}/${verse}`;
+}
 
 // Initialize App
 loadBibleData();

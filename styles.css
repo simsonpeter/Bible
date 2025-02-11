@@ -204,8 +204,7 @@ footer button:disabled {
         font-size: 0.9rem;
     }
 }
-// Enhanced CSS Additions
-/* Add to styles.css */
+
 .bookmark-btn.active {
     background-color: var(--secondary-color);
 }

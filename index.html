@@ -9,30 +9,27 @@
     <link rel="stylesheet" href="styles.css">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1>தமிழ் பைபிள்</h1>
-            <div class="settings">
-                <button id="theme-toggle">🌓</button>
-                <button id="text-size-down">A-</button>
-                <button id="text-size-up">A+</button>
-            </div>
+            <h1>Tamil Bible App</h1>
+            <button id="theme-toggle">🌓</button>
         </header>
 
         <main>
             <div class="controls">
                 <select id="book-select">
-                    <option value="">புத்தகத்தைத் தேர்ந்தெடு</option>
+                    <option value="">புத்தகத்தைத் தேர்ந்தெடுக்கவும்</option>
                 </select>
                 <select id="chapter-select">
-                    <option value="">அதிகாரத்தைத் தேர்ந்தெடு</option>
+                    <option value="">அதிகாரத்தைத் தேர்ந்தெடுக்கவும்</option>
                 </select>
             </div>
             
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="வார்த்தையைத் தேடு...">
+                <input type="text" id="search-input" placeholder="வசனத்தைத் தேடுக...">
             </div>
 
             <div id="verse-display"></div>
@@ -40,13 +37,9 @@
 
         <footer>
             <button id="prev-chapter-btn">← முந்தைய</button>
-            <button id="bookmark-btn" class="bookmark-btn">புத்தகமார்க்</button>
             <button id="next-chapter-btn">அடுத்தது →</button>
         </footer>
-
-        <div id="install-prompt"></div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
